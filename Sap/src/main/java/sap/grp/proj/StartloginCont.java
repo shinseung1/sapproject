@@ -33,6 +33,15 @@ public class StartloginCont {
 		return mav;
 		
 	}
+	
+	@RequestMapping(value = "/login/NewFile.do" , method = RequestMethod.GET)
+	public ModelAndView NewFile() {
+		ModelAndView mav = new ModelAndView();
+		mav.setViewName("/login/NewFile");
+
+		return mav;
+		
+	}
 	@ResponseBody
 	@RequestMapping(value = "/login/checkId.do" , method  = RequestMethod.GET)
 	public String checkId(String id) {

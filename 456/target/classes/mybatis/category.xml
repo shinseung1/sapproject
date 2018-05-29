@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="category">
+    <insert id="create" parameterType="CategoryVO">
+    INSERT INTO category(categoryno, categrpno, title, seqno, visible, ids, rdate)
+    VALUES((SELECT NVL(MAX(categoryno), 0)+1 as categoryno FROM category),
+                #{categrpno}, #{title}, #{seqno}, #{visible}, #{ids}, sysdate)
+  </insert>
+  
+  <select id="list" resultType="Categrp_CategoryVO">
+    SELECT c.categrpno, c.name, c.seqno,
+               t.categoryno, t.categrpno, t.title, t.seqno as category_seqno, t.visible, t.ids, t.cnt
+    FROM categrp c, category t  
+    WHERE c.categrpno = t.categrpno(+)
+    ORDER BY c.categrpno ASC, t.seqno ASC
+  </select>
+
+  <select id="read" resultType="CategoryVO" parameterType="int">
+    SELECT categoryno, categrpno, title, seqno, visible, ids, rdate
+    FROM category 
+    WHERE categoryno=#{categoryno}
+  </select>
+
+  <update id="update" parameterType="CategoryVO">
+    UPDATE category
+    SET categrpno=#{categrpno}, title=#{title}, seqno=#{seqno}, visible=#{visible}, ids=#{ids}
+    WHERE categoryno=#{categoryno}
+  </update>
+  
+  <delete id="delete" parameterType="int">
+    DELETE FROM category 
+    WHERE categoryno = #{categoryno }
+  </delete> 
+ 
+  <!-- 우선순위 up 10 -> 1 -->
+  <update id="update_seqno_up" parameterType="int">
+    UPDATE category 
+    SET seqno = seqno - 1 
+    WHERE categoryno=#{categoryno}
+  </update>
+
+  <!-- 우선순위 down 10 -> 1 -->
+  <update id="update_seqno_down" parameterType="int">
+    UPDATE category 
+    SET seqno = seqno + 1 
+    WHERE categoryno=#{categoryno}
+  </update>
+
+  <!-- FK 컬럼 값이 사용된 레코드 갯수 산출 -->  
+  <select id="countByCategrpno" resultType="int" parameterType="int">
+    SELECT COUNT(*) as cnt
+    FROM category
+    WHERE categrpno = #{categrpno}
+    
+  </select>
+
+  <delete id="deleteByCategrpno" parameterType="int">
+    DELETE FROM category   
+    WHERE categrpno = #{categrpno}
+  </delete> 
+  
+  <update id="increaseCnt" parameterType="int">
+    UPDATE category 
+    SET cnt = cnt + 1 
+    WHERE categoryno=#{categoryno}
+  </update>
+ 
+  <update id="decreaseCnt" parameterType="int">
+    UPDATE category 
+    SET cnt = cnt - 1 
+    WHERE categoryno=#{categoryno}
+  </update>
+  
+</mapper>
+
+
+
+
+
+

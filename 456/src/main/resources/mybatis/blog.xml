@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="blog">
+  <insert id="create" parameterType="BlogVO">
+    INSERT INTO blog(blogno,
+                             categoryno, mno, title, content, good, thumb, file1, size1, cnt, replycnt, rdate, 
+                             grpno, indent, ansnum, word)  
+    VALUES((SELECT NVL(MAX(blogno), 0) + 1 as blogno FROM blog),
+                #{categoryno}, #{mno}, #{title}, #{content}, 0, #{thumb}, #{file1}, #{size1}, 0, 0, sysdate,
+                (SELECT NVL(MAX(grpno), 0) + 1 as grpno FROM blog), 0, 0, #{word})
+  </insert>
+ 
+  <select id="list_all_category" resultType="BlogVO">
+    SELECT blogno,
+              categoryno, mno, title, content, good, thumb, file1, size1, cnt, replycnt, rdate, 
+              grpno, indent, ansnum, word
+    FROM blog
+    ORDER BY grpno DESC, ansnum ASC
+  </select>
+  
+<!--   <select id="list_by_categoryno" resultType="BlogVO" parameterType="int">
+    SELECT blogno,
+               categoryno, mno, title, content, good, thumb, file1, size1, cnt, replycnt, rdate, 
+               grpno, indent, ansnum, word
+    FROM blog
+    WHERE categoryno=#{categoryno}
+    ORDER BY grpno DESC, ansnum ASC
+  </select> -->
+  
+  <select id="total_count" resultType="int">
+    SELECT COUNT(*) as count
+    FROM blog
+  </select> 
+
+  <select id="read" resultType="BlogVO">
+    SELECT blogno,
+           categoryno, mno, title, content, good, thumb, file1, size1, cnt, replycnt, rdate, 
+           grpno, indent, ansnum, word
+    FROM blog
+    WHERE blogno=#{blogno}
+  </select>
+  
+  <update id="update" parameterType="BlogVO">
+    UPDATE blog
+    SET title=#{title}, content=#{content}, 
+          thumb=#{thumb}, file1=#{file1}, size1=#{size1}, word=#{word}
+    WHERE blogno=#{blogno}
+  </update> 
+  
+  <delete id="delete" parameterType="int">
+    DELETE FROM blog
+    WHERE blogno=#{blogno}  
+  </delete>  
+  
+  <!-- category별 검색된 레코드 목록 -->
+<!--   <select id="list_by_categoryno" resultType="BlogVO" parameterType="HashMap">
+    SELECT blogno,
+               categoryno, mno, title, content, good, thumb, file1, size1, cnt, replycnt, rdate, 
+               grpno, indent, ansnum, word
+    FROM blog
+    <choose>
+      <when test="word == null or word == ''"> 검색하지 않는 경우
+        WHERE categoryno=#{categoryno}
+      </when>
+      <otherwise>
+        WHERE categoryno=#{categoryno} AND word LIKE '%' || #{word} || '%'  
+      </otherwise>
+    </choose>
+    
+    ORDER BY grpno DESC, ansnum ASC
+  </select> -->
+  
+  <!-- category별 검색된 레코드 갯수 -->
+  <select id="search_count" resultType="int" parameterType="HashMap">
+    SELECT COUNT(*) as cnt
+    FROM blog
+    <choose>
+      <when test="word == null or word == ''"> <!-- 검색하지 않는 경우 -->
+        WHERE categoryno=#{categoryno}
+      </when>
+      <otherwise>
+        WHERE categoryno=#{categoryno} AND word LIKE '%' || #{word} || '%'  
+      </otherwise>
+    </choose>
+  </select>  
+  
+  <!-- category별 검색된 레코드 목록 + 페이징 -->
+  <select id="list_by_categoryno" resultType="BlogVO" parameterType="HashMap">
+    SELECT blogno,
+               categoryno, mno, title, content, good, thumb, file1, size1, cnt, replycnt, rdate, 
+               grpno, indent, ansnum, word, r
+    FROM (
+              SELECT blogno, categoryno, mno, title, content, good, thumb, file1, size1, cnt,
+                         replycnt, rdate, grpno, indent, ansnum, word, rownum as r
+              FROM (
+                        SELECT blogno, categoryno, mno, title, content, good, thumb, file1, size1, cnt,
+                                   replycnt, rdate, grpno, indent, ansnum, word
+                        FROM blog
+                        <choose>
+                          <when test="word == null or word == ''"> <!-- 검색하지 않는 경우 -->
+                            WHERE categoryno=#{categoryno}
+                          </when>
+                          <otherwise>
+                            WHERE categoryno=#{categoryno} AND word LIKE '%' || #{word_find} || '%'  
+                          </otherwise>
+                        </choose>
+                        ORDER BY grpno DESC, ansnum ASC
+              )            
+    )
+    <!-- WHERE <![CDATA[ r >= #{startNum} AND r <= #{endNum} ]]> -->
+    WHERE r &gt;= #{startNum} AND r &lt;= #{endNum}
+    
+  </select>  
+  
+  <!-- ******************** 답변 관련 시작 ******************** -->
+  <!-- 신규 답변을 최우선으로 출력하기위한 답변 순서 조절 -->
+  <update id='updateAnsnum' parameterType="BlogVO">
+    UPDATE blog
+    SET ansnum = ansnum + 1
+    WHERE grpno = #{grpno} AND ansnum > #{ansnum}
+  </update>  
+   
+  <!-- 답변 --> 
+  <insert id="reply" parameterType="BlogVO">
+    INSERT INTO blog(blogno,
+                             categoryno, mno, title, content, good, thumb, file1, size1, cnt, replycnt, rdate, 
+                             grpno, indent, ansnum, word)  
+    VALUES((SELECT NVL(MAX(blogno), 0) + 1 as blogno FROM blog),
+                #{categoryno}, #{mno}, #{title}, #{content}, 0, #{thumb}, #{file1}, #{size1}, 0, 0, sysdate,
+                #{grpno}, #{indent}, #{ansnum}, #{word})
+  </insert>
+  
+  <!-- ******************** 답변 관련 종료 ******************** -->
+ 
+ 
+</mapper>
+
+
+
+

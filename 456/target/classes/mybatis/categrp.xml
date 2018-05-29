@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="categrp">
+  <!-- insert: INSERT SQL 실행
+        id: 함수명과 일치시키거나, Spring과의 연동에 쓰이는 값으로 사용됨
+        return: 등록한 레코드 갯수 리턴
+        parameterType: 전달받는 데이터 객체 선언, CategrpVO 객체를 전달 받음
+        SQL 선언시 ';'은 삭제, 
+        #{}의 형태는 get 메소드를 호출하여 컬럼의 값으로 지정 
+        예) #{name}: public String getName() {... 호출 -->
+  <insert id="create" parameterType="CategrpVO">
+    INSERT INTO categrp(categrpno, name, seqno, visible, rdate)
+    VALUES((SELECT NVL(MAX(categrpno), 0)+1 as categrpno FROM categrp),
+    #{name}, #{seqno}, #{visible}, sysdate)
+  </insert>
+  
+  <!-- select: SELECT SQL 실행
+  resultType: 하나의 레코드를 CategrpVO 객체로 생성하여 ArrayList class에 저장하여 
+  List interface 타입으로 리턴
+  List<CategrpVO> list = new ArrayList<CategrpVO>();
+   -->
+  <select id="list" resultType="CategrpVO">
+    SELECT categrpno, name, seqno, visible, rdate
+    FROM categrp
+    ORDER BY seqno ASC
+    
+  </select>
+  
+  <!-- 조회 -->
+  <select id="read" resultType="CategrpVO" parameterType="int">
+    SELECT categrpno, name, seqno, visible, rdate
+    FROM categrp
+    WHERE categrpno=#{categrpno}
+  </select>
+  
+  <!-- 변경 -->
+  <update id="update" parameterType="CategrpVO">
+    UPDATE categrp
+    SET name=#{name}, seqno=#{seqno}, visible=#{visible}
+    WHERE categrpno=#{categrpno}
+  </update>
+
+  <!-- 삭제 -->
+  <delete id="delete" parameterType="int">
+    DELETE FROM categrp
+    WHERE categrpno = #{categrpno}
+  </delete>
+
+  <!-- 우선순위 up 10 -> 1 -->
+  <update id="update_seqno_up" parameterType="int">
+    UPDATE categrp 
+    SET seqno = seqno - 1 
+    WHERE categrpno=#{categrpno}
+  </update>
+
+  <!-- 우선순위 down 10 -> 1 -->
+  <update id="update_seqno_down" parameterType="int">
+    UPDATE categrp 
+    SET seqno = seqno + 1 
+    WHERE categrpno=#{categrpno}
+  </update>
+     
+</mapper>
+
+
+
+
